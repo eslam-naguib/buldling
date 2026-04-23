@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import { env } from './config/env';
 import { errorMiddleware } from './middleware/error.middleware';
 import authRoutes from './routes/auth.routes';
 import flatRoutes from './routes/flat.routes';
@@ -13,8 +14,14 @@ import dashboardRoutes from './routes/dashboard.routes';
 const app = express();
 
 app.use(helmet());
+
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', 'https://building.revelop.dev'];
+if (env.FRONTEND_URL) {
+  allowedOrigins.push(env.FRONTEND_URL);
+}
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: allowedOrigins,
   credentials: true,
 }));
 app.use(morgan('dev'));
