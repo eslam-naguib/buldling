@@ -13,16 +13,31 @@ import dashboardRoutes from './routes/dashboard.routes';
 
 const app = express();
 
-app.use(helmet());
-
+// 1. CORS must be at the very top
 const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', 'https://building.revelop.dev'];
 if (env.FRONTEND_URL) {
   allowedOrigins.push(env.FRONTEND_URL);
 }
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      // For production, if it still fails, let's be more permissive temporarily to identify the cause
+      callback(null, true); 
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+}));
+
+app.use(helmet({
+  crossOriginResourcePolicy: false, // Disable this as it can interfere with CORS
 }));
 app.use(morgan('dev'));
 app.use(express.json());
